@@ -1,0 +1,48 @@
+DIR = 'src/image/io'
+BIN = ["ccdump","ccdprint","ccdspec","ccdhead"]
+NEED = ["ccdmath" ,"ccdgen"]
+NBODY = 10
+rule help:
+	shell: 'echo {DIR}'
+
+rule need:
+	shell: 'echo {NEED}'
+
+rule clean:
+	shell: '@echo Cleaning {DIR}'
+		'@rm -f ccd.in ccd3.in'
+
+rule all: 
+	shell: '{BIN}'
+rule ccd:
+	input: 'ccd.in'
+	output: 'ccd.in'
+	shell: '@echo Creating $@'
+	       '$(EXEC) ccdmath out={ouput} "fie=10*%x+sqrt(%y)"  size=10,10,1'
+	       '@bsf {input} '41.644 31.2134 0 93 115''
+
+rule ccd3:
+	input: 'ccd3.in'
+	output:'ccd3.in'
+	shell: '@echo Creating $@'
+	       '$(EXEC) ccdgen out={output} object=noise spar=0,1  size=10,10,100 seed=123'
+	       '@bsf {input} '0.00961965 1.00606 -3.8169 4.5 10015''
+
+ccdprint: 
+	input: 'ccd.in'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdprint ccd.in x= y= format=%7.3f; nemo.coverage ccdprint.c'
+
+ccddump: 
+	input: 'ccd.in'
+	shell: '@echo Running $@'
+	'$(EXEC) ccddump ccd.in . ; nemo.coverage ccddump.c'
+
+ccdspec: 
+	input: 'ccd3.in'
+	shell: 'ccdspec {input} | tail -3'
+
+ccdhead: 
+	 input: 'ccd.in'
+	 shell: 'ccdhead {input}'
+

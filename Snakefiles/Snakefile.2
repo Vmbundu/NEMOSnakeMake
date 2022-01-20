@@ -1,0 +1,81 @@
+DIR = 'src/image/misc'
+BIN = ["ccdplot","ccdstat","ccdmom","ccdsub", "ccdrow", "ccdstack"]
+NEED = ["ccdmath" ,"ccdgen"]
+
+rule help:
+	shell: 'echo {DIR}'
+
+rule need:
+	shell: 'echo {NEED}'
+
+rule clean:
+	shell: '@echo Cleaning {DIR}'
+		'@rm -f ccd.in ccdmom.in gauss1 gauss2 gauss21 gauss12'
+
+rule all: 
+	shell: '{BIN}'
+
+rule ccd:
+	shell: '@echo Creating $@'
+	       '$(EXEC) ccdmath out=ccd.in "fie=10/sqrt((abs(%x-31.5))**$(P)+(abs(%y-31.5))**$(P))" size=64,64,1'
+	       #'@bsf ccd.in '1.70886 0.707985 0 10.3526 4111''
+
+N = 2
+rule ccdmom:
+	shell: '@echo Creating $@'
+	       '$(EXEC) ccdmath out=ccdmom.in "fie=%x+2*%y+4*%z" size=$(N),$(N),$(N)'
+	       #'@bsf ccdmom.in	'1.65217 2.37026 0 7 23''
+
+
+rule ccdplot: 
+	input: 'ccd.in'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdplot {input} $(C) yapp=$(YAPP) ; nemo.coverage ccdplot.c'
+
+rule ccdstat: 
+	input: 'ccd.in'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdstat {input} ; nemo.coverage ccdstat.c'
+
+rule ccdsub: 
+	input: 'ccd.in'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdsub ccd.in - 10:20 10:20 |  $(EXEC) ccdstat - ; nemo.coverage ccdsub.c ccdstat.c'
+
+rule ccdrow: 
+	input: 'ccd.in'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdrow {input} - row=0 |  $(EXEC) ccdstat - ; nemo.coverage ccdrow.c ccdstat.c'
+
+rule ccdmom: 
+	input: 'ccdmom.in'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdmom {input} - 1 | $(EXEC) ccdstat - ; nemo.coverage ccdmom.c ccdstat.c'
+	       '$(EXEC) ccdmom {input} - 2 | $(EXEC) ccdstat - ; nemo.coverage ccdmom.c ccdstat.c'
+	       '$(EXEC) ccdmom {input} - 3 | $(EXEC) ccdstat - ; nemo.coverage ccdmom.c ccdstat.c'
+
+
+rule gauss1:
+	shell: '@echo Creating $@'
+	       '$(EXEC) ccdgen out=gauss1 object=gauss spar=1,10 size=20,20'
+
+rule gauss2:
+	shell: '@echo Creating $@'
+	       '$(EXEC) ccdgen out=gauss2 object=gauss spar=1,20 size=10,10'
+	
+ccdstack: 
+	input: 'gauss1' 
+	       'gauss2'
+	shell: '@echo Running $@'
+	       '$(EXEC) ccdstack gauss1,gauss2 - | $(EXEC) ccdstat -'
+	       '$(EXEC) ccdstack gauss2,gauss1 - | $(EXEC) ccdstat -'
+
+ccdstacktest:
+	shell: 'rm -f p1 ccd1 ccd2 ccd3 ccd12 ccd21'
+	       'mkplummer p1 100000'	
+	       'snapgrid p1 ccd1 xrange=0:1 yrange=0:1    nx=32 ny=32'
+	       'snapgrid p1 ccd2 xrange=-1:0 yrange=-1:0  nx=32 ny=32'
+	       'ccdgen "" ccd3 spar=0 size=64,64 cdelt=4/64,4/64'
+	       'ccdstack ccd3,ccd1,ccd2 ccd12'
+	       'ccdstack ccd3,ccd2,ccd1 ccd21'
+
