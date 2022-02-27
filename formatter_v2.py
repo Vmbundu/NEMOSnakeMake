@@ -1,20 +1,35 @@
 import re
 
 def eq_stam (elem, line, out):
-    r = re.findall(r' \w+ ', line[elem])
-    if (len(r) > 1):
-        for ele in r:
-            out.write("\'" + ele + "\' ")
-    out.write("\n")
-    return elem+1
+    test = re.sub('$', '', line[elem])
+    r = re.search('/',test)
+    if(r != None):
+        out.write("\'"+ test + "\'")
+        return elem+1
+    else:
+        r = re.findall('\w+[\s\n]', test)
+        if(len(r) > 1):
+            out.write("[")
+            for ele in r:
+                out.write("\'" + ele + "\'")
+            out.write("]")
+        else:
+             out.write("\'" + test + "\'")
+        return elem+1     
+#    r = re.findall('\w+[\s\n]', line[elem])
+#    if (len(r) > 1):
+#        for ele in r:
+#            out.write("\'" + ele + "\' ")
+#    out.write("\n")
+#    return elem+1
 
 def rule_stam (elem, line, out):
-    r = re.findall("\w+ ", line[elem])
+    r = re.findall("\w+[\s\n]", line[elem])
     if(len(r) > 0):
         out.write("input:\n")
         for ele in r:
             out.write("\t " + ele + ",\n")
-        return shell_stam(elem, line, out)
+        return shell_stam(elem+1, line, out)
     else:
         return elem+1
 
@@ -22,13 +37,13 @@ def shell_stam (elem, line, out):
     r = re.search(r':', line[elem])
     if (r == None):
         out.write("shell: \n")
-        while r == None:
+    while r == None and elem <= len(line) - 1:
             out.write("\'" + line[elem] + "\';\n")
-            elem += 1
             r = re.search(r':', line[elem])
-        return elem
-    else:
-        return elem
+            elem += 1
+    return elem
+#    else:
+#        return elem
 
 
 
