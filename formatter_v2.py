@@ -1,18 +1,21 @@
 import re
 
-def eq_stam (elem, line, out):
+def eq_stam (elem, line, out, word):
     test = re.sub('$', '', line[elem])
     r = re.search('/',test)
     if(r != None):
-        out.write("\'"+ test + "\'")
+        m = re.findall('(\S+)', test)
+        out.write(m[0] + ' ' + m[1]+ " \'"+ m[2] + "\'\n")
         return elem+1
     else:
-        r = re.findall('\w+[\s\n]', test)
+        r = re.findall('(\w+)[\s\n]+', test)
         if(len(r) > 1):
+            out.write(r[0] + " = ")
             out.write("[")
             for ele in r:
-                out.write("\'" + ele + "\'")
-            out.write("]")
+                if ele != word:
+                    out.write("\'" + ele + "\',")
+            out.write("]\n")
         else:
              out.write("\'" + test + "\'")
         return elem+1     
@@ -24,7 +27,7 @@ def eq_stam (elem, line, out):
 #    return elem+1
 
 def rule_stam (elem, line, out):
-    r = re.findall("\w+[\s\n]", line[elem])
+    r = re.findall('\((\w+)\)', line[elem])
     if(len(r) > 0):
         out.write("input:\n")
         for ele in r:
@@ -33,20 +36,21 @@ def rule_stam (elem, line, out):
     elif elem <= len(line)-1:
         return shell_stam(elem+1, line, out)
     else:
-        return elem
+        return shell_stam(elem+1, line, out)
 
 def shell_stam (elem, line, out):
     r = re.search(r':', line[elem])
-    if (r == None):
+    if (r == None and line[elem] != ''):
         out.write("shell: \n")
-    while r == None:
+    while r == None and line[elem] != '':
             line[elem] = line[elem].strip()
-            out.write("\'" + line[elem] + "\';\n")
+            #out.write("\'" + line[elem] + "\';\n")
             #r = re.search(r':', line[elem])
-            if elem < len(line) - 1:
+            if elem < len(line) - 1 and line[elem] != '':
+                out.write("\'" + line[elem] + "\';\n")
                 elem += 1
                 r = re.search(r':', line[elem])
-            elif elem == len(line) - 1:
+            elif elem == len(line) - 0 and line[elem] != '':
                 out.write("\'" + line[elem] + "\';\n")
                 break
             else:
@@ -71,8 +75,8 @@ while i < len(lines):
     z = re.match("(\w+) =", line)
     if(z != None):
         
-            out.write(z.group(1) + " =")
-            i = eq_stam(i,lines,out)    
+#            out.write(z.group(1) + " =")
+            i = eq_stam(i,lines,out, z.group(1))    
             continue
     
     z = re.match('(\w+):', line)
