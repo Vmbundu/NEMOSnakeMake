@@ -1,0 +1,83 @@
+DIR = 'src/image/trans'
+ BIN =  [ 'ccdmath', 'ccdflip', 'ccdsmooth', 'ccdgen', 'ccdsharp', 'ccdsharp3', 'ccdsky' ]
+ NEED = $(BIN) 
+
+
+
+rule help:
+ 	shell: 
+ 	  '@echo $(DIR)';
+ 
+rule need:
+ 	shell: 
+ 	  '@echo $(NEED)';
+ 
+rule clean:
+ 	shell: 
+ 	  '@echo Cleaning $(DIR)';
+ 	  '@rm -f ccd.in ccd3.in ccd.smooth ccd.sky';
+ 
+rule all:
+ 	input:
+ 	 BIN,
+ 	shell: 
+ 
+ccd.in:
+
+	@echo Creating $@
+
+	$(EXEC) ccdmath out=ccd.in "fie=10*%x+sqrt(%y)"  size=5,5,1 ; nemo.coverage ccdmath.c
+
+	@bsf ccd.in '14.3933 15.6202 0 42 40'
+
+	
+
+ccd3.in:
+
+	@echo Creating $@
+
+	$(EXEC) ccdmath out=ccd3.in "fie=10*%x+sqrt(%y)+%z*%z"  size=5,5,5 ; nemo.coverage ccdmath.c
+
+	@bsf ccd3.in '24.7475 16.8428 0 58 140'	
+
+
+
+rule ccdmath:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  '$(EXEC) ccdmath ccd.in - %1 | $(EXEC) ccdprint - x= y= format=%7.3f ; nemo.coverage ccdmath.c';
+ 
+rule ccdgen:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  '$(EXEC) ccdgen out=- object=exp pa=30 | $(EXEC) ccdprint - x= y= format=%7.3f ; nemo.coverage ccdgen.c';
+ 
+rule ccdflip:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  '$(EXEC) ccdflip ccd.in - xy | $(EXEC) ccdprint - x= y= format=%7.3f ; nemo.coverage ccdflip.c';
+ 
+rule ccdsmooth:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  '$(EXEC) ccdsmooth ccd.in - 1 | $(EXEC) ccdprint - x= y= format=%7.3f ; nemo.coverage ccdsmooth.c';
+ 
+rule ccdsharp:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  '$(EXEC) ccdsharp ccd.in - | $(EXEC) ccdprint - x= y= format=%7.3f ; nemo.coverage ccdsmooth.c';
+ 
+rule ccdsharp3:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  '$(EXEC) ccdsharp3 ccd3.in -| $(EXEC) ccdprint - x= y= z= format=%7.3f ; nemo.coverage ccdsmooth.c';
+ 
+rule ccdintpol:
+ 	shell: 
+ 	  '@echo Running $@';
+ 
+rule ccdsky:
+ 	shell: 
+ 	  '@echo Running $@';
+ 	  'ccdsky ccd.in ccd.sky';
+ 

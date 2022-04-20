@@ -1,0 +1,32 @@
+DIR = 'src/kernel/fortran'
+ BIN = 
+
+NEED =  [ 'unfio', 'ftoc' ]
+ 
+
+#	no testing done here yet 
+
+
+
+
+
+rule help:
+ 	shell: 
+ 	  '@echo $(DIR)';
+ rule need:
+ 	shell: 
+ 	  '@echo $(NEED)';
+ 
+rule clean:
+ 	shell: 
+ 	  '@echo Cleaning $(DIR)';
+ 
+rule all:
+ 	input:
+ 	 BIN,
+ 	shell: 
+ 
+rule func:
+ 	shell: 
+ 	  '($(MAKE) funcc; $(EXEC) funcc)';
+ 
