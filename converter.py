@@ -1,5 +1,6 @@
 import re
 
+# Analyzing initialization statement
 def eq_stam (elem, line, word):
     test = re.sub('$', '', line[elem])
     r = re.search('/',test)
@@ -9,7 +10,7 @@ def eq_stam (elem, line, word):
         return elem+1
     else:
         r = re.findall('(\w+)[\s\n]+', test)
-        if(len(r) > 1):
+        if(len(r) > 2):
             print(r[0] + " = ", end= " ")
             print("[", end= " ")
             l = 1
@@ -30,9 +31,10 @@ def eq_stam (elem, line, word):
 #    out.write("\n")
 #    return elem+1
 
+#Handles the target title 
 def rule_stam (elem, line):
-    r = re.findall('\((\w+)\)', line[elem])
-    if(len(r) > 0):
+    r = re.findall(' \w+', line[elem])
+    if(len(r) > 1):
         print("\tinput:\n", end= " ")
         for ele in r:
             print("\t " + ele + ",\n", end= " ")
@@ -42,9 +44,12 @@ def rule_stam (elem, line):
     else:
         return shell_stam(elem+1, line)
 
+#Handles shell portion
 def shell_stam (elem, line):
     r = re.search(r':', line[elem])
-    if (r == None and line[elem] != ''):
+    if(re.search(r'^\s+$', line[elem]) != None):
+        return elem  
+    elif (r == None):
         print("\tshell: \n", end= " ")
     while r == None and line[elem] != '':
             line[elem] = line[elem].strip()
@@ -57,19 +62,17 @@ def shell_stam (elem, line):
             elif elem == len(line) - 1 and line[elem] != '':
                 print("\t  \'" + line[elem] + "\';\n", end= " ")
                 break
-            else:
-                break
     return elem
 #    else:
 #        return elem
 
 
-
+#Starts here
 lines = []
 with open('Testfile','r') as f:
     lines = f.readlines()
 
-out = open('Snakefile', 'w')
+#out = open('Snakefile', 'w')
 i = 0
 while i < len(lines) - 1:
     line = lines[i]
@@ -92,7 +95,7 @@ while i < len(lines) - 1:
 
     print(lines[i])
     i+=1
-            
+f.close()            
     
 
 
